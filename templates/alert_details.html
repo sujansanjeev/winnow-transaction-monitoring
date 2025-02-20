@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alert Details</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen text-gray-700">
+    <nav class="bg-white text-black shadow-md animate__animated animate__fadeInDown">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <h1 class="text-2xl font-bold">Alert Details</h1>
+            <a href="/" class="px-4 py-2 bg-indigo-500 hover:bg-indigo-400 rounded-md text-sm font-medium text-white">
+                Back to Dashboard
+            </a>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-4 py-8">
+        <div class="bg-white rounded-lg shadow p-6 border border-slate-200">
+            <h2 class="text-xl font-bold text-red-600">Customer: {{ alert['customer_name'] }}</h2>
+            <p class="text-gray-600 mt-2"><strong>Registration No:</strong> {{ alert['registration_no'] }}</p>
+            <p class="text-gray-600 mt-2"><strong>Triggered Alert:</strong> {{ alert['alert_reason'] }}</p>
+
+            <h3 class="text-lg font-bold mt-6">Transactions:</h3>
+            <table class="min-w-full divide-y divide-gray-200 mt-4">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-xs font-medium text-gray-500">Type</th>
+                        <th class="px-6 py-3 text-xs font-medium text-gray-500">Amount</th>
+                        <th class="px-6 py-3 text-xs font-medium text-gray-500">Date</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for tx in transactions %}
+                    <tr>
+                        <td class="px-6 py-4">{{ tx['transaction_type'] }}</td>
+                        <td class="px-6 py-4 font-medium">AED {{ "{:,.2f}".format(tx['amount']) }}</td>
+                        <td class="px-6 py-4">{{ tx['upload_date'] }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <h3 class="text-lg font-bold mt-6">Update Status:</h3>
+<form method="POST" action="{{ url_for('update_alert_status', alert_id=alert['id']) }}" enctype="multipart/form-data">
+    <select name="status" id="status" class="border p-2 rounded-md shadow-sm focus:ring-indigo-500 w-full">
+        <option value="Pending for review" {% if alert['status'] == 'Pending for review' %}selected{% endif %}>Pending for review</option>
+        <option value="Under Investigation" {% if alert['status'] == 'Under Investigation' %}selected{% endif %}>Under Investigation</option>
+        <option value="Closed as not suspicious" {% if alert['status'] == 'Closed as not suspicious' %}selected{% endif %}>Closed as not suspicious</option>
+        <option value="Closed as suspicious and STR/SAR reported" {% if alert['status'] == 'Closed as suspicious and STR/SAR reported' %}selected{% endif %}>Closed as suspicious and STR/SAR reported</option>
+        <option value="Source of funds are genuine. Withdrawal slip from SBI bank verified." {% if alert['status'] == 'Source of funds are genuine. Withdrawal slip from SBI bank verified.' %}selected{% endif %}>Source of funds are genuine. Withdrawal slip from SBI bank verified.</option>
+    </select>
+    <div id="slip-upload" class="mt-4" style="display: none;">
+        <label for="slip_file" class="block text-sm font-medium text-gray-700">Upload Withdrawal Slip:</label>
+        <input type="file" name="slip_file" id="slip_file" class="border p-2 rounded-md shadow-sm focus:ring-indigo-500 w-full">
+    </div>
+    <button type="submit" class="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-500">
+        Update Status
+    </button>
+</form>
+
+{% if alert['slip_file'] %}
+    <div class="mt-6">
+        <h3 class="text-lg font-bold">Uploaded Withdrawal Slip:</h3>
+        <a href="{{ url_for('static', filename=alert['slip_file']) }}" class="text-indigo-600 hover:underline" target="_blank">
+            Download Slip
+        </a>
+    </div>
+{% endif %}
+
+<script>
+    document.getElementById('status').addEventListener('change', function() {
+        const slipUpload = document.getElementById('slip-upload');
+        if (this.value === 'Source of funds are genuine. Withdrawal slip from SBI bank verified.') {
+            slipUpload.style.display = 'block';
+        } else {
+            slipUpload.style.display = 'none';
+        }
+    });
+
+    if (document.getElementById('status').value === 'Source of funds are genuine. Withdrawal slip from SBI bank verified.') {
+        document.getElementById('slip-upload').style.display = 'block';
+    }
+</script>
+        </div>
+    </div>
+</body>
+</html>
